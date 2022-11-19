@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : ChangeMeIn@UserSettingsUnder.SFDoc
  * @group             : 
- * @last modified on  : 01-25-2022
+ * @last modified on  : 11-19-2022
  * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
 **/
 public with sharing class pdfController {
@@ -18,7 +18,7 @@ public with sharing class pdfController {
     }
 
     @AuraEnabled
-    public static string generatePdf(String pdfId){
+    public static string generatePdf(String pdfId, String email){
         Pagereference page = Page.renderAsPDF;
         page.getParameters().put('pdfText', pdfId);
         List<Skill__c> sk = new List<Skill__c>();
@@ -34,7 +34,34 @@ public with sharing class pdfController {
         objAttachment.IsPrivate = false;
         insert objAttachment;
         System.debug(page.getContentaspdf());
+        sendPdfViaEmail(email, pdfId);
         return aa;
+    }
+
+    @future( Callout = true )
+    public static void sendPdfViaEmail(String email, String pdfId){
+        Pagereference page = new Pagereference('/apex/renderAsPDF?pdfText='+pdfId);
+        Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
+        attachment.setFileName('document');
+        attachment.setContentType('application/pdf');
+        attachment.body = page.getContent();
+        attachment.setInline(false);
+        // attachments.add(efa);
+        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+        mail.setToAddresses(new String[] {email});
+        mail.setSubject('Hii Its Me');
+        mail.setHtmlBody('Its really me');
+        mail.setFileAttachments(new Messaging.EmailFileAttachment[] {attachment});
+        Messaging.SendEmailResult[] results = Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+
+         for (Messaging.SendEmailResult res : results) {
+            if (res.isSuccess()) {
+                System.debug('Email sent successfully');
+            }
+            else {
+                System.debug('The following errors occurred: ' + res.getErrors());                 
+            }
+        }
     }
 
     @AuraEnabled

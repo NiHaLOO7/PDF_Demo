@@ -4,8 +4,29 @@ import updateData from '@salesforce/apex/pdfController.storeHtmlData'
 import generatePdf from '@salesforce/apex/pdfController.generatePdf'
 import deleteCurrentPDFData from '@salesforce/apex/pdfController.deleteData'
 export default class PdfGenerationDemo extends LightningElement {
+    openModal = false;
+
+    showModal() {
+        this.openModal = true;
+    }
+    closeModal() {
+        this.openModal = false;
+    }
+
+    constructor() {
+        super();
+        window.addEventListener('beforeunload', (event) => {
+          // Cancel the event as stated by the standard.
+          event.preventDefault();
+          // Chrome requires returnValue to be set.
+          event.returnValue = 'sample value';
+        });
+            }
+
+            
     connectedCallback(){
         window.onbeforeunload = ()=>{
+            console.log("Hiii")
             deleteCurrentPDFData({pdfId:this.pdfId}).then((result)=>{
                 console.log(result);
             }).catch((error)=>{
@@ -46,7 +67,7 @@ export default class PdfGenerationDemo extends LightningElement {
         console.log(content.outerHTML)
         this.pdfId = Date.now();
         updateData({pdfId:this.pdfId ,htmlData:content.outerHTML}).then((result)=>{
-            generatePdf({pdfId:result}).then((response)=>{
+            generatePdf({pdfId:result, email:"email@email.com"}).then((response)=>{
                 console.log(response);
             })
             .catch((error)=>{
