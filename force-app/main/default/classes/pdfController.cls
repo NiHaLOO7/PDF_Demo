@@ -40,28 +40,33 @@ public with sharing class pdfController {
 
     @future( Callout = true )
     public static void sendPdfViaEmail(String email, String pdfId){
-        Pagereference page = new Pagereference('/apex/renderAsPDF?pdfText='+pdfId);
-        Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
-        attachment.setFileName('document');
-        attachment.setContentType('application/pdf');
-        attachment.body = page.getContent();
-        attachment.setInline(false);
-        // attachments.add(efa);
-        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-        mail.setToAddresses(new String[] {email});
-        mail.setSubject('Hii Its Me');
-        mail.setHtmlBody('Its really me');
-        mail.setFileAttachments(new Messaging.EmailFileAttachment[] {attachment});
-        Messaging.SendEmailResult[] results = Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+        try {
+            Pagereference page = new Pagereference('/apex/renderAsPDF?pdfText='+pdfId);
+            Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
+            attachment.setFileName('document');
+            attachment.setContentType('application/pdf');
+            attachment.body = page.getContent();
+            attachment.setInline(false);
+            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+            mail.setToAddresses(new String[] {email});
+            mail.setSubject('Hii Its Me');
+            mail.setHtmlBody('Its really me');
+            mail.setFileAttachments(new Messaging.EmailFileAttachment[] {attachment});
+            Messaging.SendEmailResult[] results = Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
 
-         for (Messaging.SendEmailResult res : results) {
-            if (res.isSuccess()) {
-                System.debug('Email sent successfully');
-            }
-            else {
+            for (Messaging.SendEmailResult res : results) {
+                if (res.isSuccess()) {
+                    System.debug('Email sent successfully');
+                }
+                else {
                 System.debug('The following errors occurred: ' + res.getErrors());                 
+                }
             }
         }
+        catch (Exception e) {
+            System.debug(e.getMessage());
+        }
+        
     }
 
     @AuraEnabled
